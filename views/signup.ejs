@@ -1,0 +1,14 @@
+<html>
+  <%- include("partials/head", {title: "Sign Up"})%>
+  <main>
+    <form action="/signup" method="POST">
+      <label for="email">Email</label>
+        <input type="email" id="email" name="email">
+      <label for="password">Password</label>
+        <input type="password" id="password" name="password">
+      <label for="confirm-password">Confirm password</label>
+        <input type="password" id="confirm-password" name="confirm-password">
+      <button type="submit">Sign Up</button>
+    </form>
+  </main>
+</html>

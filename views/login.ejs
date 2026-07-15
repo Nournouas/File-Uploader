@@ -1,0 +1,12 @@
+<html>
+  <%- include("partials/head", {title: "Log in"})%>
+  <main>
+    <form action="/login" method="post">
+      <label for="email">Email</label>
+        <input type="email" id="email">
+      <label for="password">Password</label>
+        <input type="password" id="password" >
+      <button type="submit">Sign Up</button>
+    </form>
+  </main>
+</html>
