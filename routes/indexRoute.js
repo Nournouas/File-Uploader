@@ -1,11 +1,19 @@
 const express = require("express")
 const indexRouter = express.Router();
-const { getHomePage, getSignup, getLogin, postSignup } = require("../controllers/indexController")
+const { getHomePage, getSignup, getLogin, postSignup } = require("../controllers/indexController");
+const passport = require("passport");
 
 indexRouter.get("/", getHomePage);
 indexRouter.get("/login", getLogin);
 indexRouter.get("/signup", getSignup);
 indexRouter.post("/signup", postSignup);
+indexRouter.post("/login",
+  passport.authenticate("local", {
+  successRedirect: "/folders",
+  failureRedirect: "/error",
+  failureMessage: true,
+}
+))
 
 module.exports = {
   indexRouter,
