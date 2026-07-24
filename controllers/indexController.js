@@ -1,26 +1,49 @@
 const { createUser } = require("../utilities/queries");
+const bcrypt = require("bcryptjs");
 
 const getHomePage = (req, res) =>{
-  res.render("lander")
+  if (req.user != undefined) {
+    res.redirect("/folders");
+  }else{
+    res.render("lander")
+  }
 }
 
 const getLogin = (req, res) =>{
-  res.render("login")
+  if (req.user != undefined) {
+    res.redirect("/folders");
+  }else{
+    res.render("login")
+  }
 }
 
 const getSignup = (req, res) =>{
-  console.log(req.user);
-  res.render("signup")
+  if (req.user != undefined) {
+    res.redirect("/folders");
+  }else{
+    res.render("signup")
+  }
 }
 
 const postSignup = async (req, res, next) => {
-  console.log(`arguments: ${req.body.email} and ${req.body.password}`)
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(req.body.password, salt);
   try{
-    createUser(req.body.email, req.body.password);
+    createUser(req.body.email, hashedPassword);
+    res.redirect("/login");
   }catch(err){
     console.error(err)
     return next(err);
   }
+}
+
+const getLogout = (req, res, next) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.redirect("/")
+  })
 }
 
 
@@ -29,4 +52,5 @@ module.exports = {
   getLogin,
   getSignup,
   postSignup,
+  getLogout,
 }

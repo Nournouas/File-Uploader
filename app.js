@@ -40,10 +40,13 @@ app.use(passport.session())
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '/views'));
 
-
-
 app.use('/', indexRouter);
 app.use('/folders', foldersRouter);
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).render("error", {error: err});
+});
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
