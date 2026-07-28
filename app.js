@@ -3,6 +3,8 @@ const passport = require("passport");
 const path = require("node:path")
 const { indexRouter } = require("./routes/indexRoute")
 const { foldersRouter } = require("./routes/foldersRoute")
+const bodyParser = require('body-parser');
+const busboy = require('connect-busboy');
 
 const expressSession = require("express-session");
 require('dotenv').config()
@@ -33,8 +35,10 @@ app.use(
 require("./utilities/passport");
 
 app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true })); 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.session())
+app.use(busboy());
 
 //ejs setup
 app.set('view engine', 'ejs');

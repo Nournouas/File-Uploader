@@ -1,41 +1,10 @@
 const express = require("express");
 const foldersRouter = express.Router();
-const multer  = require('multer');
-const path = require("node:path");
-const fs = require("node:fs");
-const fileURLToPath = require("url");
+const busboy = require('connect-busboy');
+require("dotenv").config();
+const cloudinary = require('cloudinary').v2;
+console.log(cloudinary.config().cloud_name)
 const { getFoldersByUserId, creatNewFolder, getFoldersByFolderId , getRootFolder, deleteFolderById} = require("../utilities/queries")
-
-
-
-const uploadfile = () => {
-  const uploaddir="./upload"
-  //check if no folder then create
-  if (!fs.existsSync(uploaddir)) {
-      fs.mkdirSync(uploaddir)
-  }
-  const storage= multer.diskStorage({
-      destination: function (req,file,cb){
-        const uploaddir=`./uploads/${req.user.id}`
-        //check if no folder then create
-        if (!fs.existsSync(uploaddir)) {
-            fs.mkdirSync(uploaddir)
-        }
-        cb(null,uploaddir)
-      },
-      filename: function (req, file, cb) {
-          cb(null , Date.now() + "--" + file.originalname)
-        }
-  })
-
-  const upload = multer({storage, 
-    limits:{
-      fileSize: 5*1024*10240,//1MB
-      files: 1 // Single file upload
-    }
-  })
-  return upload
-}
 
 const getRootFolders = async (req, res) =>{
   if (req.user != undefined){
@@ -46,10 +15,30 @@ const getRootFolders = async (req, res) =>{
   }
 }
 
-
 const postUploadFile = async (req, res, next) => {
+  if (req.busboy) {
+    req.busboy.on('file', (name, file, info) => {
+      const stream = cloudinary.uploader.upload_stream(
+        (error, result) => {
+          if (error) console.error(error);
+          else {
+            console.log(result);
+            console.log("Download URL:", result.secure_url);
+          }
+        }
+      );
+
+      file.pipe(stream);
+    });
+
+    req.busboy.on('field', (name, value, info) => {
+      // handle other fields
+    });
+
+    req.pipe(req.busboy);
+  }
   res.redirect("/folders");
-}
+};
 
 const createNewFolder = async (req, res, next) => {
   const userId = parseInt(req.body.userId)
@@ -87,7 +76,6 @@ const deleteFolder = async (req, res) => {
 module.exports = {
   getRootFolders,
   postUploadFile,
-  uploadfile,
   createNewFolder,
   getSubFolder,
   deleteFolder
