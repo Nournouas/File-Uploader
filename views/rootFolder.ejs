@@ -36,6 +36,13 @@
     <br>
     <br>
     <br>
+    <% if (rootFolder.files){ %>
+      <% for (let i = 0 ; i < rootFolder.files.length ; i++) { %>
+        <div>
+          <h2><%= rootFolder.files[i].fileUrl %></h2>
+        </div>
+      <% } %>
+    <% } %>
     <a href="/logout">logout</a>
   </main>
 </html>

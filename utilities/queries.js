@@ -15,7 +15,6 @@ const createUser = async (email, pswd) => {
       parentFolderId: null
     }
   })
-  console.log(`Created User: ${user} `);
 }
 
 const getFoldersByUserId = async (id) => {
@@ -25,6 +24,28 @@ const getFoldersByUserId = async (id) => {
   })
 
   return userFolders.folders
+}
+
+const getRootFolder = async (id) => {
+  const rootFolder = await prisma.folder.findFirst({
+    where: {
+      AND: [
+        {userId: id},
+        {name: "Root"}
+      ]},
+    include: {files: true, childrenFolders: true}
+  })
+
+  return rootFolder;
+}
+
+const getFoldersByFolderId = async (id) => {
+  const Folder = await prisma.folder.findUnique({
+    where: {id: id},
+    include: {files: true, childrenFolders: true}
+  })
+
+  return Folder
 }
 
 const creatNewFolder = async (folderId, folderName, userId) => {
@@ -39,8 +60,20 @@ const creatNewFolder = async (folderId, folderName, userId) => {
   return folder;
 }
 
+const deleteFolderById = async (id) => {
+  const Folder = await prisma.folder.delete({
+    where: {
+      id: id,
+    }
+  })
+}
+
+
 module.exports = {
   createUser,
   getFoldersByUserId,
   creatNewFolder,
+  getFoldersByFolderId,
+  getRootFolder,
+  deleteFolderById
 }

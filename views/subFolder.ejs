@@ -1,0 +1,50 @@
+<html>
+  <%- include("partials/head", {title: "Folders - File Uploader"})%>
+  <main>
+    <h1>welcome <%= user.email %> this is folder <%= folder.name %></h1>
+    <br>
+    <br>
+    <h1>Folders</h1>
+    <h3>Create New Folder</h3>
+    <form action="/folders/newfolder" method="POST">
+      <input type="text", name="userId", value="<%= user.id %>" hidden/>
+      <input type="text", name="folderId", value="<%= folder.id %>" hidden/>
+      <label for="folderName">Folder Name</label>
+      <input id="folderName" type="text" name="folderName" />
+      <button type="submit">Create Folder</button>
+    </form>
+    <br>
+    <br>
+    <% for (let i = 0 ; i < folder.childrenFolders.length ; i++) { %>
+      <% if (folder.childrenFolders[i].name != "Root") { %>
+      <div>
+        <h2><%= folder.childrenFolders[i].name %></h2>
+        <a href=<%=`/folders/${folder.childrenFolders[i].id}`%>>Visit</a>
+        <a href=<%=`/folders/deleteFolder/${folder.childrenFolders[i].id}`%>>Delete</a>
+      </div>
+      <% } %>
+    <% } %>
+    <br>
+    <br>
+    <br>
+    <h1>Files</h1>
+    <h3>Upload New File to <%= folder.name %></h3>
+    <form action="/folders/uploadfile" method="POST" enctype="multipart/form-data">
+      <input type="text", name="user", value="<%= user.id %>" hidden/>
+      <input type="text", name="folder", value="<%= folder.id %>" hidden/>
+      <input type="file" name="file" />
+      <button type="submit">upload</button>
+    </form>
+    <br>
+    <br>
+    <br>
+    <% if (folder.files){ %>
+      <% for (let i = 0 ; i < folder.files.length ; i++) { %>
+        <div>
+          <h2><%= folder.files[i].fileUrl %></h2>
+        </div>
+      <% } %>
+    <% } %>
+    <a href="/logout">logout</a>
+  </main>
+</html>
