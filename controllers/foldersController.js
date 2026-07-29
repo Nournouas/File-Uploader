@@ -4,7 +4,7 @@ const busboy = require('connect-busboy');
 require("dotenv").config();
 const cloudinary = require('cloudinary').v2;
 console.log(cloudinary.config().cloud_name)
-const { getFoldersByUserId, creatNewFolder, getFoldersByFolderId , getRootFolder, deleteFolderById} = require("../utilities/queries")
+const { getFoldersByUserId, creatNewFolder, getFoldersByFolderId , getRootFolder, deleteFolderById, createFile} = require("../utilities/queries")
 
 const getRootFolders = async (req, res) =>{
   if (req.user != undefined){
@@ -15,28 +15,44 @@ const getRootFolders = async (req, res) =>{
   }
 }
 
+
 const postUploadFile = async (req, res, next) => {
-  if (req.busboy) {
+  if (!req.busboy) {
+    return res.redirect("/folders");
+  }
+
+  const fields = {};
+
+  const uploadPromise = new Promise((resolve, reject) => {
+    req.busboy.on('field', (name, value) => {
+      fields[name] = value;
+    });
+
     req.busboy.on('file', (name, file, info) => {
+      console.log(info)
       const stream = cloudinary.uploader.upload_stream(
+        { use_filename: true, 
+          unique_filename: false,
+          filename_override: info.filename,
+          resource_type: "auto",
+          context: { title: info.filename }
+        },
         (error, result) => {
-          if (error) console.error(error);
-          else {
-            console.log(result);
-            console.log("Download URL:", result.secure_url);
-          }
+          if (error) reject(error);
+          else resolve(result);
         }
       );
-
       file.pipe(stream);
     });
 
-    req.busboy.on('field', (name, value, info) => {
-      // handle other fields
-    });
+    req.busboy.on('error', reject);
+  });
 
-    req.pipe(req.busboy);
-  }
+  req.pipe(req.busboy);
+
+  const result = await uploadPromise; 
+  await createFile(fields, result.url);
+
   res.redirect("/folders");
 };
 

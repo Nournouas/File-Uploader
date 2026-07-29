@@ -68,6 +68,16 @@ const deleteFolderById = async (id) => {
   })
 }
 
+const createFile = async (fields, url) => {
+  let parentId = parseInt(fields.folder);
+  const file = await prisma.file.create({
+    data:{
+      parentFolderId: parentId,
+      fileUrl: url,
+    }
+  })
+}
+
 
 module.exports = {
   createUser,
@@ -75,5 +85,6 @@ module.exports = {
   creatNewFolder,
   getFoldersByFolderId,
   getRootFolder,
-  deleteFolderById
+  deleteFolderById,
+  createFile
 }

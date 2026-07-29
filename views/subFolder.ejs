@@ -41,7 +41,7 @@
     <% if (folder.files){ %>
       <% for (let i = 0 ; i < folder.files.length ; i++) { %>
         <div>
-          <h2><%= folder.files[i].fileUrl %></h2>
+          <a href="<%= folder.files[i].fileUrl %>" download> download</a>
         </div>
       <% } %>
     <% } %>
