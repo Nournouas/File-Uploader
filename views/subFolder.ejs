@@ -2,6 +2,11 @@
   <%- include("partials/head", {title: "Folders - File Uploader"})%>
   <main>
     <h1>welcome <%= user.email %> this is folder <%= folder.name %></h1>
+    <% if (folder.name != "Root") { %>
+      <a href='/folders'>Go To Root Folder</a>
+      <a href=<%=`/folders/${folder.parentFolderId}`%>>Go Back</a>
+    <% } %>
+    
     <br>
     <br>
     <h1>Folders</h1>
@@ -41,7 +46,11 @@
     <% if (folder.files){ %>
       <% for (let i = 0 ; i < folder.files.length ; i++) { %>
         <div>
+          <h1><%= folder.files[i].fileName %></h1>
           <a href="<%= folder.files[i].fileUrl %>" download> download</a>
+          <a href=<%=`/folders/deleteFile/${folder.files[i].id}`%>>Delete</a>
+          <br>
+          <br>
         </div>
       <% } %>
     <% } %>

@@ -68,14 +68,44 @@ const deleteFolderById = async (id) => {
   })
 }
 
-const createFile = async (fields, url) => {
+const createFile = async (fields, url, pubId, type, name) => {
   let parentId = parseInt(fields.folder);
   const file = await prisma.file.create({
     data:{
       parentFolderId: parentId,
       fileUrl: url,
+      publicId: pubId,
+      fileType: type,
+      fileName: name,
     }
   })
+}
+
+const getFileById = async (id) => {
+  const file = await prisma.file.findUnique({
+    where: {
+      id: id
+    },
+  })
+
+  return file
+}
+
+const deletefileById = async (id) => {
+  const file = await prisma.file.delete({
+    where: {
+      id: id,
+    }
+  })
+}
+
+const checkIfFileExists = async (pubId) => {
+  const result = await prisma.file.findFirst({
+    where: {
+      publicId: pubId,
+    }
+  })
+  return result ? true : false;
 }
 
 
@@ -86,5 +116,8 @@ module.exports = {
   getFoldersByFolderId,
   getRootFolder,
   deleteFolderById,
-  createFile
+  createFile,
+  getFileById,
+  deletefileById,
+  checkIfFileExists
 }

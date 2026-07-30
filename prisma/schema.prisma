@@ -24,6 +24,9 @@ model File {
   parentFolder    Folder  @relation(fields: [parentFolderId], references: [id], onDelete: Cascade)
   parentFolderId  Int
   fileUrl         String
+  publicId        String
+  fileType        String
+  fileName        String
 }
 
 model Session {
@@ -39,7 +42,7 @@ model Folder {
   parentFolderId    Int?
   parentFolder      Folder?   @relation("folderParent", fields: [parentFolderId], references: [id], onDelete: Cascade)
   childrenFolders   Folder[]  @relation("folderParent")
-  user              User      @relation(fields:[userId], references: [id])
+  user              User      @relation(fields:[userId], references: [id], onDelete: Cascade)
   userId            Int
   files   File[]
 }

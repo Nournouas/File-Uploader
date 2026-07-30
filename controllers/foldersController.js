@@ -4,7 +4,7 @@ const busboy = require('connect-busboy');
 require("dotenv").config();
 const cloudinary = require('cloudinary').v2;
 console.log(cloudinary.config().cloud_name)
-const { getFoldersByUserId, creatNewFolder, getFoldersByFolderId , getRootFolder, deleteFolderById, createFile} = require("../utilities/queries")
+const { checkIfFileExists, deletefileById, getFileById, getFoldersByUserId, creatNewFolder, getFoldersByFolderId , getRootFolder, deleteFolderById, createFile} = require("../utilities/queries")
 
 const getRootFolders = async (req, res) =>{
   if (req.user != undefined){
@@ -29,7 +29,6 @@ const postUploadFile = async (req, res, next) => {
     });
 
     req.busboy.on('file', (name, file, info) => {
-      console.log(info)
       const stream = cloudinary.uploader.upload_stream(
         { use_filename: true, 
           unique_filename: false,
@@ -50,10 +49,12 @@ const postUploadFile = async (req, res, next) => {
 
   req.pipe(req.busboy);
 
-  const result = await uploadPromise; 
-  await createFile(fields, result.url);
-
-  res.redirect("/folders");
+  const result = await uploadPromise;
+  const alreadyexists = await checkIfFileExists(result.public_id);
+  if (!alreadyexists){
+    await createFile(fields, result.url, result.public_id, result.resource_type, result.display_name);
+  }
+  res.redirect(`/folders/${fields.folder}`);
 };
 
 const createNewFolder = async (req, res, next) => {
@@ -76,13 +77,61 @@ const getSubFolder = async (req, res) => {
   }
 }
 
+async function getAllDescendantFolderIds(folderId) {
+  let folderIds = [folderId];
+  const folder = await getFoldersByFolderId(folderId);
+  if (folder.childrenFolders.length < 1) {
+    return folderIds;
+  }else{
+    const descendantIdArrays = await Promise.all(
+      folder.childrenFolders.map((subFolder) => getAllDescendantFolderIds(subFolder.id))
+    );
+    folderIds = folderIds.concat(descendantIdArrays.flat());
+  }
+
+  return folderIds;
+}
+
 const deleteFolder = async (req, res) => {
   const folderId = parseInt(req.params.folder)
   
   if (req.user != undefined){
     const folder = await getFoldersByFolderId(folderId);
+    const subFolders = await getAllDescendantFolderIds(folderId);
+    for (let i = 0 ; i < subFolders.length ; i++) {
+      const subFolder = await getFoldersByFolderId(subFolders[i]);
+      for (let j = 0 ; j < subFolder.files.length ; j++){
+        const file = await getFileById(subFolder.files[j].id);
+        try {
+          await cloudinary.uploader.destroy(file.publicId, { resource_type: file.fileType}).then(result => console.log(result))
+        } catch (err){
+          console.error(err);
+        }
+      }
+    }
     const parentFolderId = folder.parentFolderId;
     const deleteFolder = await deleteFolderById(folderId);
+    res.redirect(`/folders/${parentFolderId}`)
+  }else{
+    res.redirect("/login")
+  }
+}
+
+
+
+const deleteFile = async (req, res) => {
+  const fileId = parseInt(req.params.fileid)
+
+  if (req.user != undefined){
+    const file = await getFileById(fileId);
+    try {
+      await cloudinary.uploader.destroy(file.publicId, { resource_type: file.fileType}).then(result => console.log(result))
+    } catch (err){
+      console.error(err);
+    }
+    
+    const parentFolderId = file.parentFolderId;
+    const deleteFile = await deletefileById(fileId);
     res.redirect(`/folders/${parentFolderId}`)
   }else{
     res.redirect("/login")
@@ -94,5 +143,6 @@ module.exports = {
   postUploadFile,
   createNewFolder,
   getSubFolder,
-  deleteFolder
+  deleteFolder,
+  deleteFile
 }
